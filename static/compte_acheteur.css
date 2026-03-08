@@ -1,0 +1,48 @@
+body {
+      background: linear-gradient(to right, #ffdde1,#c8b6ff);
+      font-family: 'Times New Roman', Times, serif, sans-serif;
+      margin: 0;
+      padding:0;
+      
+    }
+
+form {
+      background: linear-gradient(to right,#c8b6ff ,#ffffff);
+      padding: 100px;
+      border-radius: 80px;
+      max-width: 450px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(00,0,0,100);
+    }
+
+label {
+      font-weight: bold;
+    }
+
+input[type="text"],
+input[type="tel"],
+input[type="password"],
+input[type= "email"],
+input[type="date"],
+input[type="address"],
+textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ffdde1;
+      border-radius: 40px;
+    }
+
+button {
+      background-color: blue;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 40px;
+      cursor: pointer;
+    }
+
+button:hover {
+      background-color: blueviolet;
+    }

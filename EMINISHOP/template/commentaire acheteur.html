@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion des Commentaires - e-MiniShopRDC</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #ffdde1, #c8b6ff);
+    color: #333;
+  }
+
+  header {
+    background: linear-gradient(to right, #ffdde1, #c8b6ff);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .logo { font-size: 22px; font-weight: bold; color: #4b0082; }
+
+  main {
+    max-width: 1000px;
+    margin: auto;
+    padding: 30px 20px;
+  }
+
+  h2 { color: #4b0082; margin-bottom: 20px; }
+
+  .product-section {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+  }
+
+  .product-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+
+  .product-title img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .comments {
+    margin-top: 10px;
+  }
+
+  .comment {
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+  }
+
+  .comment p { margin: 5px 0; }
+
+  .reply-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+  }
+
+  .reply-form input[type="text"] {
+    flex: 1;
+    padding: 8px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+  }
+
+  .reply-form button {
+    background: #ff4081;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+
+  .reply-form button:hover { background: #e73370; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">e-MiniShopRDC</div>
+</header>
+
+<main>
+
+  <h2>Commentaires des produits</h2>
+
+  <!-- Produit 1 -->
+  <div class="product-section">
+    <div class="product-title">
+      <img src="produit1.jpg" alt="Produit 1">
+      <h3>PlayStation 5 Pro</h3>
+    </div>
+    <div class="comments">
+      <div class="comment">
+        <p><strong>Megan Zener:</strong> Je suis intéressé par ce produit !</p>
+        <div class="reply-form">
+          <input type="text" placeholder="Répondre…">
+          <button>Répondre</button>
+        </div>
+      </div>
+      <div class="comment">
+        <p><strong>Christo:</strong> Livraison rapide ?</p>
+        <div class="reply-form">
+          <input type="text" placeholder="Répondre…">
+          <button>Répondre</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Produit 2 -->
+  <div class="product-section">
+    <div class="product-title">
+      <img src="produit2.jpg" alt="Produit 2">
+      <h3>Casque Gaming</h3>
+    </div>
+    <div class="comments">
+      <div class="comment">
+        <p><strong>Daniel:</strong> Le son est-il surround 7.1 ?</p>
+        <div class="reply-form">
+          <input type="text" placeholder="Répondre…">
+          <button>Répondre</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>

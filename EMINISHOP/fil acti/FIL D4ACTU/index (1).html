@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hello World + Localisation</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --accent: #22d3ee;
+      --muted: #9ca3af;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% 10%, #0b1220 0%, var(--bg) 40%, #0a0f1a 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+    .card {
+      width: min(680px, 92vw);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: 0.5px;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin: 18px 0 10px;
+    }
+    button {
+      background: var(--accent);
+      color: #0b1220;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.2s ease;
+      box-shadow: 0 8px 24px rgba(34, 211, 238, 0.25);
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .status {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .coords {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 14px;
+      line-height: 1.5;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Hello World</h1>
+    <p class="subtitle">Ce site demande votre localisation pour afficher vos coordonnées et les envoyer au serveur.</p>
+
+    <div class="row">
+      <div class="status" id="status">Permission non demandée.</div>
+      <button id="askBtn">Demander la localisation</button>
+    </div>
+
+    <div class="coords" id="coords" hidden>
+      <div><strong>Latitude:</strong> <span id="lat">—</span></div>
+      <div><strong>Longitude:</strong> <span id="lng">—</span></div>
+      <div><strong>Précision:</strong> <span id="acc">—</span> mètres</div>
+      <div><strong>Horodatage:</strong> <span id="ts">—</span></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="small">
+      Transparence: votre navigateur vous demandera d’autoriser l’accès à la localisation. Si vous acceptez, vos coordonnées seront affichées ici et envoyées à l’endpoint configuré. Vous pouvez retirer l’autorisation dans les paramètres du navigateur.
+    </p>
+  </main>
+
+  <script>
+    const askBtn = document.getElementById('askBtn');
+    const statusEl = document.getElementById('status');
+    const coordsBox = document.getElementById('coords');
+    const latEl = document.getElementById('lat');
+    const lngEl = document.getElementById('lng');
+    const accEl = document.getElementById('acc');
+    const tsEl  = document.getElementById('ts');
+
+    // Remplace par ton endpoint (HTTPS recommandé)
+    const ENDPOINT_URL = 'https://example.com/api/collect-location';
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    async function sendLocation(payload) {
+      try {
+        const res = await fetch(ENDPOINT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          // Optionnel: inclure credentials si nécessaire
+          // credentials: 'include'
+        });
+        if (!res.ok) throw new Error('Échec envoi: ' + res.status);
+        setStatus('Coordonnées envoyées au serveur.');
+      } catch (err) {
+        console.error(err);
+        setStatus('Impossible d’envoyer les coordonnées au serveur.');
+      }
+    }
+
+    function showCoords(position) {
+      const { latitude, longitude, accuracy } = position.coords;
+      const timestamp = new Date(position.timestamp).toLocaleString();
+
+      latEl.textContent = latitude.toFixed(6);
+      lngEl.textContent = longitude.toFixed(6);
+      accEl.textContent = Math.round(accuracy);
+      tsEl.textContent  = timestamp;
+      coordsBox.hidden = false;
+
+      // Envoi au serveur
+      sendLocation({
+        latitude,
+        longitude,
+        accuracy,
+        timestamp: position.timestamp,
+        userAgent: navigator.userAgent
+      });
+    }
+
+    function handleError(err) {
+      const map = {
+        1: "Permission refusée par l’utilisateur.",
+        2: "Position indisponible.",
+        3: "Délai dépassé lors de la récupération de la position."
+      };
+      setStatus(map[err.code] || 'Erreur de localisation.');
+    }
+
+    async function requestLocation() {
+      if (!('geolocation' in navigator)) {
+        setStatus('La géolocalisation n’est pas supportée par ce navigateur.');
+        return;
+      }
+      setStatus('Demande de permission en cours…');
+      askBtn.disabled = true;
+
+      // Optionnel: demander une position plus précise (peut être plus lente)
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      };
+
+      navigator.geolocation.getCurrentPosition(showCoords, handleError, options);
+    }
+
+    askBtn.addEventListener('click', requestLocation);
+  </script>
+</body>
+</html>

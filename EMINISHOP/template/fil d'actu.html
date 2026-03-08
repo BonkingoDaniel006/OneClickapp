@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>e-MiniShopRDC - Feed Acheteur</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #ffdde1, #c8b6ff);
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(to right, #ffdde1, #c8b6ff);
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: bold;
+      color: #4b0082;
+    }
+
+    .search-bar {
+      flex: 1;
+      margin: 0 15px;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 30px;
+      outline: none;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+
+    .profile {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid white;
+      box-shadow: 0 0 6px rgba(0,0,0,0.3);
+    }
+
+    .profile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    main {
+      padding: 30px 20px;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 25px;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .product-info {
+      padding: 15px;
+    }
+
+    .product-info h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #4b0082;
+    }
+
+    .product-info p {
+      margin: 8px 0;
+      font-size: 15px;
+    }
+
+    .price {
+      font-weight: bold;
+      color: #ff4081;
+    }
+
+    .shop-name {
+      font-size: 14px;
+      color: #666;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">e-MiniShopRDC</div>
+    <div class="search-bar">
+      <input type="text" placeholder="Rechercher un produit, une marque...">
+    </div>
+    <div class="profile">
+      <img src="profil.jpg" alt="Profil">
+    </div>
+  </header>
+
+  <main>
+    <div class="product-grid">
+      <div class="product-card">
+        <img src="produit1.jpg" alt="Produit 1" class="product-image">
+        <div class="product-info">
+          <h3>Téléphone Android</h3>
+          <p class="price">350 000 FC</p>
+          <p class="shop-name">Shop: TechPlus RDC</p>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <img src="produit2.jpg" alt="Produit 2" class="product-image">
+        <div class="product-info">
+          <h3>Chaussures Nike</h3>
+          <p class="price">120 000 FC</p>
+          <p class="shop-name">Shop: CityFashion</p>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <img src="produit3.jpg" alt="Produit 3" class="product-image">
+        <div class="product-info">
+          <h3>Casque Bluetooth</h3>
+          <p class="price">85 000 FC</p>
+          <p class="shop-name">Shop: AudioRDC</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

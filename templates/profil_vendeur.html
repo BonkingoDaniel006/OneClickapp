@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil Boutique - KasaTech</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='profil_vendeur.css') }}">
+</head>
+<body>
+
+<header>
+  <div class="logo">e-MiniShopRDC</div>
+  
+</header>
+
+<main>
+  <div class="shop-header">
+    <img src="{{ user.profil }}" alt="Profil Acheteur">
+    <div class="shop-info">
+      <h2 class="username"> {{ user.nom_boutique }}</h2>
+      <p>{{ user.description }}</p>
+      <a href="{{ url_for('notifications') }}" class="subscribe-btn">mes notifications</a>
+    </div>
+  </div>
+
+  <h2>Produits</h2>
+  <div class="product-grid">
+    {% for p in produits %}
+    <div class="product-card" onclick="window.location.href='{{ url_for('vendeur_details', product_id=p.id) }}'">
+      <img src="{{ p.image_url }}" alt="{{ p.name }}">
+      <h3>{{ p.name }}</h3>
+      <p>{{ p.description }}</p>
+      <strong class="price">{{ p.price }} $</strong>
+    </div>
+    {% endfor %}
+</div> <br> <br>
+
+<a href="{{ url_for('ajouter_produit') }}" class="subscribe-btn">Ajouter un produit</a> <br><br><br>
+
+<a href="{{ url_for('acceuil') }}" class="subscribe-btn">Acceuil</a>
+
+
+{% if produits|length == 0 %}
+<p>Aucun produit pour le moment.</p>
+{% endif %}
+</main>
+
+</body>
+</html>
+
+

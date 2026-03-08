@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout - e-MiniShopRDC</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='paiement.css') }}">
+</head>
+<body>
+
+<header>
+  <div class="logo">e-MiniShopRDC</div>
+</header>
+
+<main>
+
+  <div class="checkout-section">
+    <h2>Mon Panier</h2>
+
+    {% if cart_items and cart_items|length > 0 %}
+      {% for item in cart_items %}
+        <div class="cart-item">
+          <h3>{{ item.product_name }}</h3>
+          <div class="item-details">
+            <span>Quantité: {{ item.quantite }}</span>
+            <span>Prix unitaire: {{ item.product_price }} $</span>
+          </div>
+          <div class="price">Total: {{ item.prix_total }} $</div>
+        </div>
+      {% endfor %}
+
+      <div class="total">
+        <span>Total</span>
+        <span>{{ cart_total }} $</span>
+      </div>
+
+      <form method="POST" action="{{ url_for('checkout') }}">
+        <button class="pay-btn" type="submit">Payer maintenant</button>
+      </form>
+
+      {% if message %}
+        <div class="success-message">{{ message }}</div>
+      {% endif %}
+    {% else %}
+      <p>Votre panier est vide.</p>
+    {% endif %}
+
+  </div>
+
+  <div class="checkout-section">
+    <h2>Méthode de paiement</h2>
+    <div class="payment-methods">
+      <label>
+        <input type="radio" name="payment" value="orange-money">
+        Orange Money
+      </label>
+      <label>
+        <input type="radio" name="payment" value="airtel-money">
+        Airtel Money
+      </label>
+      <label>
+        <input type="radio" name="payment" value="mpesa">
+        M-Pesa
+      </label>
+      <label>
+        <input type="radio" name="payment" value="card">
+        Visa/MasterCard
+      </label>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>

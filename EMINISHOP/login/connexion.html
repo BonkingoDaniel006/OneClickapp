@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Login e-MiniShopRDC</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #ffdde1,#c8b6ff);
+      font-family: 'Times New Roman', Times, serif, sans-serif;
+      margin: 0;
+      padding:0;
+      
+    }
+
+    form {
+      background: linear-gradient(to right, #ffdde1,#c8b6ff);
+      padding: 100px;
+      border-radius: 80px;
+      max-width: 450px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(00,0,0,100);
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="number"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ffdde1;
+      border-radius: 40px;
+    }
+
+    button {
+      background-color: blue;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 40px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: blueviolet;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center;">Login <br>e-MiniShopRDC</h1>
+
+  <form>
+    <label for="numerotel">Numéro de téléphone :</label>
+    <input type="number" id="numerotel" name="numerotel" >
+    <label for="email">Email :</label>
+    <input type="email" id="email" name="email" required>
+    <label for="motdepasse">Mot de passe :</label>
+    <input type="password" id="motdepasse" name="motdepasse" required>
+    <button type="submit">Se connecter</button>
+
+    
+    <footer><small> &copy Tous droits réservés ChistoKlhBdzo & Megan Zener</small></footer>
+  </form>
+</body>
+</html>

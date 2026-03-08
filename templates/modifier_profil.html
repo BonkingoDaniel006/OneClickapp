@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>modifier profil</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='modifier_profil.css') }}">
+</head>
+<body>
+  <h1 style="text-align:center;">Modifier profil <br>BotayExpress</h1>
+
+  <form action= "/modifier_profil"method="POST" enctype="multipart/form-data">
+
+  <div class="profil-container">
+    <img id="preview" src="{{ user.profil }}" class="photo-profil" alt="Photo de profil">
+    <div class="edit-icon" onclick="document.getElementById('fileInput').click()">✏️</div>
+  </div>
+
+  <input type="file" id="fileInput" name="profil" accept="image/*" style="display:none;">
+
+  <label for="email">Email :</label>
+  <input type="email" id="email" name="email" value="{{ user.email }}" required>
+
+  <label for="first_name">Prénom :</label>
+  <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+
+  <label for="last_name">Nom :</label>
+  <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+
+  <label for="middle_name">Postnom :</label>
+  <input type="text" id="middle_name" name="middle_name" value="{{ user.middle_name }}">
+
+  <label for="adresse">Adresse physique :</label>
+  <input type="text" id="adress" name="adresse" value="{{ user.adresse }}" required>
+
+  <label for="naissance">Date de naissance :</label>
+  <input type="date" id="naissance" name="naissance" value="{{ user.naissance }}" required>
+  <label for="nom_boutique">Nom de la boutique :</label>
+  <input type="text" id="nom_boutique" name="nom_boutique" value="{{ user.nom_boutique }}">
+  <label for="description">Bio de la boutique :</label>
+  <textarea id="description" name="description">{{ user.description }}</textarea>
+
+  <label for="motdepasse">Mot de passe :</label>
+  <input type="password" id="motdepasse" name="motdepasse">
+
+  <label for="confirmer">Confirmer le mot de passe :</label>
+  <input type="password" id="confirmer" name="confirmer">
+
+  <button type="submit">Modifier</button>
+
+  <footer><small>&copy Tous droits réservés ChistoKlhBdzo & Megan Zener</small></footer>
+</form>
+<script>
+document.getElementById('fileInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        document.getElementById('preview').src = URL.createObjectURL(file);
+    }
+});
+</script>
+</body>
+</html>

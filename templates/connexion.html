@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Login e-MiniShopRDC</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='connexion.css') }}">
+</head>
+<body>
+  <h1 style="text-align:center;">Login <br>e-MiniShopRDC</h1>
+
+  <form action="/fil_actu" method="POST">
+    <label for="numerotel">Numéro de téléphone :</label>
+    <input type="number" id="numerotel" name="numerotel" >
+    <label for="email">Email :</label>
+    <input type="email" id="email" name="email" required>
+    <label for="motdepasse">Mot de passe :</label>
+    <input type="password" id="motdepasse" name="motdepasse" required>
+    {% if error %}
+<div style="
+    background-color: #ffdddd;
+    color: #a30000;
+    padding: 10px 15px;
+    border-left: 4px solid #a30000;
+    margin-bottom: 15px;
+    border-radius: 4px;
+">
+    {{ error }}
+</div>
+{% endif %}
+    <button type="submit" href="{{ url_for('fil_actu') }}">Se connecter</button> <br>
+    <a href="http://">mot de passe oublié ?</a> <br>
+    <p><strong>vous n'avez pas encore de compte ?:</strong>
+    </p><a href="{{ url_for('create_account') }}">S'inscrire</a>
+    
+
+    
+    <footer><small> &copy D. Botay - Tous droits réservés.</small></footer>
+  </form>
+</body>
+</html>

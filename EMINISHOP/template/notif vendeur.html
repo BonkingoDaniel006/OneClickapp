@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifications - e-MiniShopRDC</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #ffdde1, #c8b6ff);
+    color: #333;
+  }
+
+  header {
+    background: linear-gradient(to right, #ffdde1, #c8b6ff);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .logo { font-size: 22px; font-weight: bold; color: #4b0082; }
+
+  main {
+    max-width: 800px;
+    margin: auto;
+    padding: 30px 20px;
+  }
+
+  h2 { color: #4b0082; margin-bottom: 20px; }
+
+  .notification {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    transition: 0.3s;
+    cursor: pointer;
+  }
+
+  .notification:hover { background: #e0d4ff; }
+
+  .notification img {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+
+  .notification-content {
+    flex: 1;
+  }
+
+  .notification-content p {
+    margin: 0;
+    font-size: 15px;
+  }
+
+  .notification-content .time {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">e-MiniShopRDC</div>
+</header>
+
+<main>
+  <h2>Notifications</h2>
+
+  <div class="notification">
+    <img src="boutique1.jpg" alt="Boutique KasaTech">
+    <div class="notification-content">
+      <p>Nouvelle publication : <strong>PlayStation 5 Pro</strong> par KasaTech</p>
+      <div class="time">Il y a 2h</div>
+    </div>
+  </div>
+
+  <div class="notification">
+    <img src="boutique2.jpg" alt="Boutique TechWorld">
+    <div class="notification-content">
+      <p>Promotion : <strong>Casque Gaming</strong> par TechWorld</p>
+      <div class="time">Hier</div>
+    </div>
+  </div>
+
+  <div class="notification">
+    <img src="produit1.jpg" alt="Produit PS5">
+    <div class="notification-content">
+      <p>Réponse à votre commentaire sur <strong>PS5 Pro</strong> par KasaTech</p>
+      <div class="time">Il y a 3h</div>
+    </div>
+  </div>
+
+  <div class="notification">
+    <img src="produit2.jpg" alt="Casque Gaming">
+    <div class="notification-content">
+      <p>Nouvel intérêt pour <strong>Casque Gaming</strong></p>
+      <div class="time">Il y a 1h</div>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ produit.name}} - e-MiniShopRDC</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendeur_details.css') }}">
+  
+
+<body>
+
+<header>
+  <div class="logo">e-MiniShopRDC</div>
+
+  
+</header>
+
+<main>
+
+  <div class="product-container">
+
+    <!-- Image -->
+    <div class="product-images">
+      <img src="{{ produit.image_url }}" alt="{{ produit.nom }}">
+    </div>
+
+    <!-- INFORMATIONS  -->
+    <div class="product-details">
+
+      <div>
+        <h1>{{ produit.name }}</h1>
+
+        <div class="price">
+          {{ produit.price }} $
+        </div>
+
+        
+
+        <div class="description">
+            {{produit.description}}
+        </div>
+      </div>
+
+      <!-- BOUTONS -->
+      <div class="actions">
+        <a href="#" class="buy-btn">Modifier le produit</a>
+        
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

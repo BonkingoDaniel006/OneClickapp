@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Espace Vendeur - e-MiniShopRDC</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      background: linear-gradient(to right, #ffdde1, #c8b6ff);
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(to right, #c8b6ff, #ffdde1);
+      color: #000;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    header input {
+      margin-top: 10px;
+      width: 60%;
+      padding: 10px;
+      border: none;
+      border-radius: 30px;
+      outline: none;
+      font-size: 16px;
+    }
+
+    /* --- Profil vendeur --- */
+    .vendeur {
+      background: white;
+      border-radius: 40px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .vendeur img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #c8b6ff;
+    }
+
+    .vendeur input[type="file"],
+    .vendeur input[type="text"],
+    .vendeur textarea {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ffdde1;
+      border-radius: 30px;
+      font-size: 1rem;
+    }
+
+    .vendeur button {
+      background: linear-gradient(to right, #ffdde1, #c8b6ff);
+      color: #000;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .vendeur button:hover {
+      background: linear-gradient(to right, #c8b6ff, #ffdde1);
+    }
+
+    /* --- Grille de produits --- */
+    .produits {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .produit {
+      background: white;
+      border-radius: 30px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      text-align: center;
+      padding-bottom: 1rem;
+      transition: transform 0.3s ease;
+    }
+
+    .produit:hover {
+      transform: scale(1.03);
+    }
+
+    .produit img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .produit h3 {
+      margin: 0.5rem 0;
+      color: #5c4b99;
+    }
+
+    .produit p {
+      color: #666;
+      font-size: 0.9rem;
+      margin: 0.3rem 1rem;
+    }
+
+    .prix {
+      color: #000;
+      font-weight: bold;
+      margin-top: 0.5rem;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🛍️ Tableau de bord vendeur</h1>
+    <input type="text" placeholder="Rechercher un produit...">
+  </header>
+
+  <section class="vendeur">
+    <img src="https://via.placeholder.com/120" alt="Profil du vendeur">
+    <form>
+      <label>Changer la photo de profil :</label><br>
+      <input type="file" accept="image/*"><br>
+
+      <input type="text" placeholder="Nom de la boutique"><br>
+      <textarea placeholder="Description de la boutique..."></textarea><br>
+
+      <button type="submit">Créer / Mettre à jour</button>
+    </form>
+  </section>
+
+  <section class="produits">
+    <div class="produit">
+      <img src="https://via.placeholder.com/250x180" alt="Produit 1">
+      <h3>Sac à main chic</h3>
+      <p>Un sac tendance pour toutes les occasions.</p>
+      <div class="prix">25 000 FC</div>
+    </div>
+
+    <div class="produit">
+      <img src="https://via.placeholder.com/250x180" alt="Produit 2">
+      <h3>Baskets unisexes</h3>
+      <p>Confortables et stylées pour le quotidien.</p>
+      <div class="prix">18 000 FC</div>
+    </div>
+
+    <div class="produit">
+      <img src="https://via.placeholder.com/250x180" alt="Produit 3">
+      <h3>Montre élégante</h3>
+      <p>Design moderne et bracelet en cuir.</p>
+      <div class="prix">12 500 FC</div>
+    </div>
+  </section>
+
+</body>
+</html>

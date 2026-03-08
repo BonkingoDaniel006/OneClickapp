@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter un produit</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='ajouter_produit.css') }}">
+</head>
+<body>
+    <header>
+  <div class="logo">e-MiniShopRDC</div>
+  
+</header>
+
+<main>
+  <div >
+        <form action="/enregistrer_produit" method="post" enctype="multipart/form-data">
+            
+            <div class="shop-info">
+                <div class="photo-container">
+                    <img src="" class="shop-photo" id="preview-image">
+                    <input type="file" id="photo-upload" name="image_url" style="display:none;">
+                    <label for="photo-upload" class="edit-icon">✏️</label>
+                    <input type="file" id="photo-upload" style="display:none;">
+                </div>
+                <label for="nom_produit">Nom du produit :</label>
+                <input type="text" id="nom_produit" name="nom_produit" required><br><br>
+                <label for="prix">Prix (Uniquement le nombre en Dollars) :</label>
+                <input type="number" id="prix" name="prix" required><br><br>
+                <label for="description">Description :</label><br>
+                <textarea id="description" name="description" rows="4" cols="50" required></textarea><br><br>
+                <button class="subscribe-btn">Valider</button>
+            </div>
+        </form>
+  </div>
+</body>
+<script>
+  const inputFile = document.getElementById("photo-upload");
+  const imgPreview = document.getElementById("preview-image");
+
+  inputFile.addEventListener("change", () => {
+    const file = inputFile.files[0];
+    if (file) {
+      imgPreview.src = URL.createObjectURL(file);
+      imgPreview.onload = () => URL.revokeObjectURL(imgPreview.src);
+    }
+  });
+</script>
+</html>

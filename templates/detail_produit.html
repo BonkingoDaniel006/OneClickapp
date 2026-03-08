@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ produit.nom }} - e-MiniShopRDC</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='details_du_produit.css') }}">
+</head>
+
+<body>
+
+<header>
+  <div class="logo">e-MiniShopRDC</div>
+
+  
+</header>
+
+<main>
+  {% if panier %}
+  
+    <div style="
+    background-color: #ffdddd;
+    color: #1b8f65;
+    padding: 10px 15px;
+    border-left: 4px solid #278f6e;
+    margin-bottom: 15px;
+    border-radius: 4px;
+">{{ panier }}</div>
+
+  {% endif %}
+  <div class="product-container">
+
+    <!-- IMAGE DU PRODUIT -->
+    <div class="product-images">
+      <img src="{{ produit.image_url }}" alt="{{ produit.nom }}">
+    </div>
+
+    <!-- INFORMATIONS DU PRODUIT -->
+    <div class="product-details">
+
+      <div>
+        <h1>{{ produit.name }}</h1>
+
+
+        <div class="price">
+          {{ produit.price }} $
+        </div>
+
+        <div class="shop-name">
+          Shop: {{ produit.nom_boutique }}
+        </div>
+
+        <div class="description">
+          {{ produit.description }}
+        </div>
+      </div>
+
+      <!-- BOUTONS -->
+      <div class="actions">
+        <form action="{{ url_for('add_product', product_id=produit.id) }}" method="POST">
+          <input type="number" name="quantite" value="1" min="1">
+          <button type="submit" class="buy-btn">Ajouter au panier 🛒</button>
+        </form>
+        <button class="subscribe-btn">S’abonner à la boutique</button>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

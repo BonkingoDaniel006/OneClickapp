@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Création de compte<br> Acheteur e-MiniShopRDC<br>"e-Buyer"</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='compte_acheteur.css') }}">
+
+</head>
+<body>
+  <h1 style="text-align:center;">Création de compte<br> Acheteur e-MiniShopRDC<br>e-Buyer</h1>
+
+  <form action="/account_setup" method="post">
+    <label for="nom_user"> Nom :</label>
+    <input type="text" id="nom_user" name="last_name" required>
+    <label for="prenom_user"> Prénom :</label>
+    <input type="text" id="prenom_user" name="first_name" required>
+    <label for="postnom">Postnom (facultatif) : </label>
+    <input type="text" id="postnom" name="middle_name">
+    <label for="email">Adresse email :</label>
+    <input type="email" id="email" name="email" required>
+    <label for="naissance">Date de naissance :</label>
+    <input type="date" id="naissance" name="naissance" required>
+    <label for="adresse">Adresse de résidence :</label>
+    <input type="text" id="adresse" name="adresse" required>
+    <label for="nom_boutique">Nom de la boutique :</label>
+    <input type="text" id="nom_boutique" name="nom_boutique">
+    <label for="description">Bio de la boutique :</label>
+    <textarea id="description" name="description"></textarea>
+    <label for="motdepassecon">Mot de passe de connexion :</label>
+    <input type="password" id="motdepassecon" name="password" required>
+    <label for="motdepassecon"> Confirmer mot de passe :</label>
+    <input type="password" id="motdepassecon2" name="confirm_password" required>
+
+    <input type="checkbox" id="conditions" name="conditions" value="conditions" required>
+    <label for="conditions">J'ai lu et accepter les <span>conditions d'usage</span> et je m'engage au respect de la politique et aux règles d'utilisisation</label><br>
+
+  
+
+    <button type="submit" href="{{ url_for('account_setup')}}">Terminer mon inscription</button>
+      <p><strong>vous avez déjà un compte ?</strong> 
+      <a href="{{ url_for('home') }}">Se connecter</a> <br>
+      
+      
+    
+    <footer><small>  &copy D. Botay - Tous droits réservés.</small></footer>
+  </form>
+</body>
+</html>
