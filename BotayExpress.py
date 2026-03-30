@@ -3,6 +3,7 @@ import random
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 import mysql.connector
+print("Démarrage de l'application BotayExpress...")
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
