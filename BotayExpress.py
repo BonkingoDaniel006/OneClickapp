@@ -4,6 +4,8 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for, s
 from werkzeug.utils import secure_filename
 import mysql.connector
 print("Démarrage de l'application BotayExpress...")
+print("je suis dans le fichier BotayExpress.py")
+print("hello world")
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
