@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 import mysql.connector
 print("Démarrage de l'application BotayExpress...")
 print("je suis dans le fichier BotayExpress.py")
-print("hello world")
+print("Importations terminées, initialisation de l'application Flask...")
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
