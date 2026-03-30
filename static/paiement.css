@@ -90,6 +90,21 @@ h2 { color: #4b0082; margin-bottom: 20px; }
     cursor: pointer;
     transition: 0.3s;
   }
+  
 
 .pay-btn:hover { background: #e73370; }
+.mod-btn:hover { background: #1d8d37; }
 
+.mod-btn {
+    margin-top: 30px;
+    background: #65de8e;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 30px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+  }

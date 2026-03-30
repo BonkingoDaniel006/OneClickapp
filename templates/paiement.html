@@ -34,16 +34,9 @@
         <span>{{ cart_total }} $</span>
       </div>
 
-      <form method="POST" action="{{ url_for('checkout') }}">
-        <button class="pay-btn" type="submit">Payer maintenant</button>
+      <form method="POST" action="">
+        <button class="mod-btn" type="submit">modifier le panier</button>
       </form>
-
-      {% if message %}
-        <div class="success-message">{{ message }}</div>
-      {% endif %}
-    {% else %}
-      <p>Votre panier est vide.</p>
-    {% endif %}
 
   </div>
 
@@ -66,6 +59,16 @@
         <input type="radio" name="payment" value="card">
         Visa/MasterCard
       </label>
+      <form method="POST" action="{{ url_for('checkout') }}">
+        <button class="pay-btn" type="submit">Payer maintenant</button>
+      </form>
+
+      {% if message %}
+        <div class="success-message">{{ message }}</div>
+      {% endif %}
+    {% else %}
+      <p>Votre panier est vide.</p>
+    {% endif %}
     </div>
   </div>
 

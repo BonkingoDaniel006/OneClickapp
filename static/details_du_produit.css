@@ -151,6 +151,14 @@ main {
 .subscribe-btn:hover {
       background: linear-gradient(to right, #ffdde1, #c8b6ff);
     }
+.nombre {
+      width: 100%;
+      padding: 10px 5px;
+      border: none;
+      border-radius: 30px;
+      outline: none;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
 
 
 

@@ -29,25 +29,7 @@
   <a href="{{ url_for('modifier_profil_acheteur') }}" class="modifer-btn">Modifier le profil</a>
   
 
-  <div class="section" onclick="window.location.href='/paiement'">
-    <h2>Mon Panier</h2>
-
-    {% if cart_items and cart_items|length > 0 %}
-      <div class="product-grid">
-        {% for item in cart_items[:2] %}
-          <div class="card">
-            <h3>{{ item.product_name }}</h3>
-            <div class="price">{{ item.prix_total }} $</div>
-            <p>Quantité: {{ item.quantite }}</p>
-          </div>
-        {% endfor %}
-      </div>
-      <p><strong>Total :</strong> {{ cart_total }} $</p>
-      <p><em>Cliquez pour voir le panier complet et payer.</em></p>
-    {% else %}
-      <p>Votre panier est vide. <br>Ajoutez des produits pour commencer.</p>
-    {% endif %}
-  </div>
+  
 
   <div class="section">
     <h2>Boutiques Abonnées</h2>
