@@ -7,6 +7,15 @@ print("Démarrage de l'application BotayExpress...")
 print("je suis dans le fichier BotayExpress.py")
 print("Importations terminées, initialisation de l'application Flask...")
 
+
+load_dotenv()
+
+# 2. Récupère la variable par son nom exact
+ma_cle_secrete = os.getenv('SECRET_KEY')
+
+# 3. Utilise-la pour Flask
+app.config['SECRET_KEY'] = ma_cle_secrete
+
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
 
