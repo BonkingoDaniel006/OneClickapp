@@ -1,0 +1,12 @@
+# Variables d'environnement (SÉCURITÉ)
+.env
+
+# Environnement virtuel
+.venv/
+venv/
+__pycache__/
+
+# Fichiers Flask/Python
+*.pyc
+instance/
+.pytest_cache/

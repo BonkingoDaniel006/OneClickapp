@@ -3,33 +3,24 @@ import random
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 import mysql.connector
-print("Démarrage de l'application BotayExpress...")
-print("je suis dans le fichier BotayExpress.py")
-print("Importations terminées, initialisation de l'application Flask...")
-
+from dotenv import load_dotenv
 
 load_dotenv()
 
-# 2. Récupère la variable par son nom exact
-ma_cle_secrete = os.getenv('SECRET_KEY')
-
-# 3. Utilise-la pour Flask
-app.config['SECRET_KEY'] = ma_cle_secrete
-
 app = Flask(__name__)
-app.secret_key = "super_secret_key"
+app.secret_key = os.getenv("KEY")
 
-# Connexion à la base de données
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Daniel12349",
-    database="botayexpress"
-)
-cursor = conn.cursor(dictionary=True)
-
-
-# ---------- ROUTES AUTH / ACCUEIL ----------
+try:
+    conn = mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
+    cursor = conn.cursor(dictionary=True)
+    print("Connexion à la base de données réussie.")
+except mysql.connector.Error as err:
+    print(f"Erreur de connexion : {err}")
 
 @app.route("/")
 def home():
