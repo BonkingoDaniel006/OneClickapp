@@ -3,6 +3,7 @@ import random
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 import mysql.connector
+from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -149,36 +150,39 @@ def fil_actu():
     # POST : tentative de connexion
     email = request.form.get("email")
     motdepasse = request.form.get("motdepasse")
+    conn= get_db_connection()
+    cursor=conn.cursor(dictionary=True)
 
     cursor.execute("SELECT * FROM buyers WHERE email = %s", (email,))
     user = cursor.fetchone()
+    if user:
 
-    if user and user.get("password") == motdepasse:
-        session["user"] = user
+        if check_password_hash(user['password'], motdepasse):
+            session["user"] = user
 
-        cursor.execute("""
-            SELECT p.*, b.nom_boutique
-            FROM products p
-            JOIN buyers b ON p.seller_id = b.id
-        """)
-        produits = cursor.fetchall()
-        random.shuffle(produits)
+            cursor.execute("""
+                SELECT p.*, b.nom_boutique
+                FROM products p
+                JOIN buyers b ON p.seller_id = b.id
+            """)
+            produits = cursor.fetchall()
+            random.shuffle(produits)
+
+            cursor.close()
+            conn.close()
+            return render_template(
+                "fil_actu.html",
+                 name=user["first_name"],
+                produits=produits,
+                user=user
+            )
 
         cursor.close()
         conn.close()
         return render_template(
-            "fil_actu.html",
-            name=user["first_name"],
-            produits=produits,
-            user=user
+            "connexion.html",
+            error="Identifiants incorrects. Veuillez réessayer."
         )
-
-    cursor.close()
-    conn.close()
-    return render_template(
-        "connexion.html",
-        error="Identifiants incorrects. Veuillez réessayer."
-    )
 
 
 @app.route("/acceuil")
@@ -547,3 +551,4 @@ def notifications():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
