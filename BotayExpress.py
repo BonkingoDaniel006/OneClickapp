@@ -74,13 +74,15 @@ def account_setup():
             "creation_compte_acheteur.html",
             error="Les mots de passe ne correspondent pas."
         )
+    hash_password= generate_password_hash(password)
+    print(hash_password)
 
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO buyers (last_name, first_name, middle_name, email, naissance, adresse, nom_boutique, description, password)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, (last_name, first_name, middle_name, email, naissance, adresse, nom_boutique, description, password))
+    """, (last_name, first_name, middle_name, email, naissance, adresse, nom_boutique, description, hash_password))
 
     conn.commit()
     cursor.close()
@@ -498,6 +500,7 @@ def modifier_profil():
         description = request.form.get("description")
         motdepasse = request.form.get("motdepasse")
         confirmer = request.form.get("confirmer")
+        hash_password = generate_password_hash(motdepasse)
 
         file = request.files.get("profil")
         profil_path = user_db.get("profil")
@@ -514,7 +517,7 @@ def modifier_profil():
                 middle_name=%s, adresse=%s, naissance=%s, password=%s,
                 profil=%s, nom_boutique=%s, description=%s WHERE id=%s
             """, (email, first_name, last_name, middle_name, adresse, naissance,
-                  motdepasse, profil_path, nom_boutique, description, user_id))
+                  hash_password, profil_path, nom_boutique, description, user_id))
         else:
             cursor_local.execute("""
                 UPDATE buyers SET email=%s, first_name=%s, last_name=%s,
