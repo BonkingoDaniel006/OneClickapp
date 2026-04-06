@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flutterwave Payment</title>
+    <script src="https://checkout.flutterwave.com/v3.js"></script>
+    <style>
+        /* Basic styles */
+        body { font-family: Arial, sans-serif; }
+        .loading { display: none; }
+        .error, .success { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Make a Payment</h1>
+    <form id="payment-form">
+        <input type="text" id="name" placeholder="Name" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="text" id="phone" placeholder="Phone" required>
+        <select id="payment-method" required>
+            <option value="">Select Payment Method</option>
+            <option value="orange_money">Orange Money</option>
+            <option value="airtel_money">Airtel Money</option>
+            <option value="mpesa">M-Pesa</option>
+            <option value="card">Card</option>
+        </select>
+        <button type="submit">Pay</button>
+        <div class="loading">Loading...</div>
+        <div class="error"></div>
+        <div class="success"></div>
+    </form>
+
+    <script>
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const loadingIndicator = document.querySelector('.loading');
+            const errorDiv = document.querySelector('.error');
+            const successDiv = document.querySelector('.success');
+            const paymentMethod = document.getElementById('payment-method').value;
+
+            loadingIndicator.style.display = 'block';
+            errorDiv.textContent = '';
+            successDiv.textContent = '';
+
+            // Initiate Flutterwave payment
+            FlutterwaveCheckout({
+                public_key: "YOUR_PUBLIC_KEY",
+                tx_ref: "txn_" + Math.random().toString(36).substr(2, 9),
+                amount: 100, // Amount to be charged
+                currency: "USD",
+                payment_options: paymentMethod,
+                redirect_url: "https://your_redirect_url", // URL to redirect after payment
+                order_id: "order_123",
+                callback: function(data) {
+                    // Call your backend to store transaction details
+                    if (data.status === 'successful') {
+                        successDiv.textContent = 'Payment Successful!';
+                    } else {
+                        errorDiv.textContent = 'Payment Failed, please try again.';
+                    }
+                    loadingIndicator.style.display = 'none';
+                },
+                onclose: function() {
+                    loadingIndicator.style.display = 'none'; // Hide loading on close
+                }
+            });
+        });
+    </script>
+</body>
+</html>
