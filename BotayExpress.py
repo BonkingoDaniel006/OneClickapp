@@ -3,6 +3,7 @@ import random
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 import mysql.connector
+from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,17 +11,13 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("KEY")
 
-try:
-    conn = mysql.connector.connect(
+def get_db_connection():
+    return mysql.connector.connect(
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME")
     )
-    cursor = conn.cursor(dictionary=True)
-    print("Connexion à la base de données réussie.")
-except mysql.connector.Error as err:
-    print(f"Erreur de connexion : {err}")
 
 @app.route("/")
 def home():
@@ -40,8 +37,12 @@ def logout():
 
 @app.route("/users")
 def get_users():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM buyers")
     users = cursor.fetchall()
+    cursor.close()
+    conn.close()
     return jsonify(users)
 
 
@@ -57,51 +58,60 @@ def create_seller():
 
 @app.route("/account_setup", methods=["POST"])
 def account_setup():
-    last_name = request.form["last_name"]
-    first_name = request.form["first_name"]
-    middle_name = request.form["middle_name"]
-    email = request.form["email"]
-    naissance = request.form["naissance"]
-    adresse = request.form["adresse"]
-    nom_boutique = request.form["nom_boutique"]
-    description = request.form["description"]
-    password = request.form["password"]
-    confirm_password = request.form["confirm_password"]
+    last_name = request.form.get("last_name")
+    first_name = request.form.get("first_name")
+    middle_name = request.form.get("middle_name")
+    email = request.form.get("email")
+    naissance = request.form.get("naissance")
+    adresse = request.form.get("adresse")
+    nom_boutique = request.form.get("nom_boutique")
+    description = request.form.get("description")
+    password = request.form.get("password")
+    confirm_password = request.form.get("confirm_password")
 
     if password != confirm_password:
-        return render_template(
-            "creation_compte_acheteur.html",
-            error="Les mots de passe ne correspondent pas."
-        )
+        return render_template("creation_compte_acheteur.html", error="Les mots de passe ne correspondent pas.")
+    
+    hash_password = generate_password_hash(password)
 
-    cursor.execute("""
-        INSERT INTO buyers (last_name, first_name, middle_name, email, naissance, adresse, nom_boutique, description, password)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, (last_name, first_name, middle_name, email, naissance, adresse, nom_boutique, description, password))
-
-    conn.commit()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO buyers (last_name, first_name, middle_name, email, naissance, adresse, nom_boutique, description, password)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (last_name, first_name, middle_name, email, naissance, adresse, nom_boutique, description, hash_password))
+        conn.commit()
+    except Exception as e:
+        return f"Erreur : {e}"
+    finally:
+        cursor.close()
+        conn.close()
     return redirect(url_for("home"))
 
 
 @app.route("/seller_setup", methods=["POST"])
 def seller_setup():
-    # Enregistrement d'un vendeur (e-shop)
     nom_proprio = request.form.get("nom_proprio")
     tel = request.form.get("tel")
     nom_e_shop = request.form.get("nom_e-shop")
     tel2 = request.form.get("tel2")
     motdepasse = request.form.get("motdepasse")
 
-    # On stocke le vendeur dans la table buyers (approche simple)
-    # On utilise le nom du responsable comme prénom, et le nom du e-shop comme nom de boutique.
+    hash_password = generate_password_hash(motdepasse)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute(
         """
         INSERT INTO buyers (last_name, first_name, email, adresse, nom_boutique, description, password)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """,
-        (nom_e_shop, nom_proprio, None, tel, nom_e_shop, f"Tel: {tel} / {tel2}", motdepasse)
+        (nom_e_shop, nom_proprio, None, tel, nom_e_shop, f"Tel: {tel} / {tel2}", hash_password)
     )
     conn.commit()
+    cursor.close()
+    conn.close()
     return redirect(url_for("home"))
 
 
@@ -109,6 +119,9 @@ def seller_setup():
 
 @app.route("/fil_actu", methods=["GET", "POST"])
 def fil_actu():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
     # GET : afficher le fil si connecté
     if request.method == "GET":
         if "user" in session:
@@ -122,6 +135,8 @@ def fil_actu():
             produits = cursor.fetchall()
             random.shuffle(produits)
 
+            cursor.close()
+            conn.close()
             return render_template(
                 "fil_actu.html",
                 name=user["first_name"],
@@ -129,37 +144,46 @@ def fil_actu():
                 user=user
             )
         else:
+            cursor.close()
+            conn.close()
             return redirect(url_for("home"))
 
     # POST : tentative de connexion
     email = request.form.get("email")
     motdepasse = request.form.get("motdepasse")
+    conn= get_db_connection()
+    cursor=conn.cursor(dictionary=True)
 
     cursor.execute("SELECT * FROM buyers WHERE email = %s", (email,))
     user = cursor.fetchone()
+    if user:
 
-    if user and user.get("password") == motdepasse:
-        session["user"] = user
+        if check_password_hash(user['password'], motdepasse):
+            session["user"] = user
 
-        cursor.execute("""
-            SELECT p.*, b.nom_boutique
-            FROM products p
-            JOIN buyers b ON p.seller_id = b.id
-        """)
-        produits = cursor.fetchall()
-        random.shuffle(produits)
+            cursor.execute("""
+                SELECT p.*, b.nom_boutique
+                FROM products p
+                JOIN buyers b ON p.seller_id = b.id
+            """)
+            produits = cursor.fetchall()
+            random.shuffle(produits)
 
+            cursor.close()
+            conn.close()
+            return render_template(
+                "fil_actu.html",
+                 name=user["first_name"],
+                produits=produits,
+                user=user
+            )
+
+        cursor.close()
+        conn.close()
         return render_template(
-            "fil_actu.html",
-            name=user["first_name"],
-            produits=produits,
-            user=user
+            "connexion.html",
+            error="Identifiants incorrects. Veuillez réessayer."
         )
-
-    return render_template(
-        "connexion.html",
-        error="Identifiants incorrects. Veuillez réessayer."
-    )
 
 
 @app.route("/acceuil")
@@ -169,7 +193,7 @@ def acceuil():
 
 # ---------- PRODUITS / DETAILS / PANIER ----------
 
-def get_product_with_seller(product_id):
+def get_product_with_seller(cursor, product_id):
     cursor.execute("""
         SELECT p.*, b.nom_boutique AS seller_name
         FROM products p
@@ -182,13 +206,19 @@ def get_product_with_seller(product_id):
 @app.route("/produit/<int:product_id>")
 def produit_details(product_id):
     user = session.get("user")
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
-    produit = get_product_with_seller(product_id)
+    produit = get_product_with_seller(cursor, product_id)
     if not produit:
+        cursor.close()
+        conn.close()
         return "Produit introuvable", 404
 
     added = request.args.get("added")
 
+    cursor.close()
+    conn.close()
     return render_template(
         "detail_produit.html",
         produit=produit,
@@ -203,8 +233,13 @@ def add_product(product_id):
     if not user:
         return redirect(url_for("home"))
 
-    produit = get_product_with_seller(product_id)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    produit = get_product_with_seller(cursor, product_id)
     if not produit:
+        cursor.close()
+        conn.close()
         return "Produit introuvable", 404
 
     # Infos acheteur
@@ -241,6 +276,8 @@ def add_product(product_id):
     ))
 
     conn.commit()
+    cursor.close()
+    conn.close()
 
     return redirect(url_for("produit_details", product_id=product_id, added=1))
 
@@ -253,6 +290,8 @@ def profil_acheteur():
     if not user:
         return redirect(url_for("home"))
 
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute(
         "SELECT * FROM panier2 WHERE buyer_id = %s ORDER BY created_at DESC",
         (user["id"],)
@@ -263,6 +302,8 @@ def profil_acheteur():
     for item in cart_items:
         total += float(item.get("prix_total") or 0)
 
+    cursor.close()
+    conn.close()
     return render_template(
         "profil_acheteur.html",
         user=user,
@@ -277,6 +318,8 @@ def paiement():
     if not user:
         return redirect(url_for("home"))
 
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute(
         "SELECT * FROM panier2 WHERE buyer_id = %s ORDER BY created_at DESC",
         (user["id"],)
@@ -287,6 +330,8 @@ def paiement():
     for item in cart_items:
         total += float(item.get("prix_total") or 0)
 
+    cursor.close()
+    conn.close()
     return render_template(
         "paiement.html",
         user=user,
@@ -303,8 +348,12 @@ def checkout():
 
     # Ici, la logique de paiement peut être ajoutée (ex: API de paiement)
     # Pour l'instant, on vide simplement le panier de l'utilisateur et on confirme.
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute("DELETE FROM panier2 WHERE buyer_id = %s", (user["id"],))
     conn.commit()
+    cursor.close()
+    conn.close()
 
     message = "Paiement effectué avec succès ! Votre commande est enregistrée."
     return render_template(
@@ -329,8 +378,12 @@ def profil_vendeur():
     if not user:
         return redirect(url_for("home"))
 
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM products WHERE seller_id = %s", (user["id"],))
     produits_vendeur = cursor.fetchall()
+    cursor.close()
+    conn.close()
 
     return render_template("profil_vendeur.html", user=user, produits=produits_vendeur)
 
@@ -365,12 +418,16 @@ def enregistrer_produit():
     else:
         image_url = None
 
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO products (seller_id, name, price, description, image_url)
         VALUES (%s, %s, %s, %s, %s)
     """, (user["id"], nom_produit, prix, description, image_url))
 
     conn.commit()
+    cursor.close()
+    conn.close()
     return redirect(url_for("profil_vendeur"))
 
 
@@ -378,6 +435,7 @@ def enregistrer_produit():
 def vendeur_details(product_id):
     user = session.get("user")
 
+    conn = get_db_connection()
     cursor2 = conn.cursor()
     cursor2.execute("""
         SELECT p.id, p.name, p.description, p.price, p.image_url, b.nom_boutique
@@ -387,8 +445,7 @@ def vendeur_details(product_id):
     """, (product_id,))
 
     produit = cursor2.fetchone()
-    cursor2.close()
-
+    
     if produit:
         produit_dict = {
             "id": produit[0],
@@ -398,8 +455,12 @@ def vendeur_details(product_id):
             "image_url": produit[4],
             "nom_boutique": produit[5]
         }
+        cursor2.close()
+        conn.close()
         return render_template("vendeur_details.html", produit=produit_dict, user=user)
 
+    cursor2.close()
+    conn.close()
     return "Produit introuvable", 404
 
 
@@ -422,6 +483,7 @@ def modifier_profil():
 
     user_id = user["id"]
 
+    conn = get_db_connection()
     cursor_local = conn.cursor(dictionary=True)
     cursor_local.execute("SELECT * FROM buyers WHERE id=%s", (user_id,))
     user_db = cursor_local.fetchone()
@@ -437,6 +499,7 @@ def modifier_profil():
         description = request.form.get("description")
         motdepasse = request.form.get("motdepasse")
         confirmer = request.form.get("confirmer")
+        
 
         file = request.files.get("profil")
         profil_path = user_db.get("profil")
@@ -448,12 +511,13 @@ def modifier_profil():
             file.save(profil_path)
 
         if motdepasse and motdepasse == confirmer:
+            hash_password = generate_password_hash(motdepasse)
             cursor_local.execute("""
                 UPDATE buyers SET email=%s, first_name=%s, last_name=%s,
                 middle_name=%s, adresse=%s, naissance=%s, password=%s,
                 profil=%s, nom_boutique=%s, description=%s WHERE id=%s
             """, (email, first_name, last_name, middle_name, adresse, naissance,
-                  motdepasse, profil_path, nom_boutique, description, user_id))
+                  hash_password, profil_path, nom_boutique, description, user_id))
         else:
             cursor_local.execute("""
                 UPDATE buyers SET email=%s, first_name=%s, last_name=%s,
@@ -469,9 +533,11 @@ def modifier_profil():
         session["user"] = cursor_local.fetchone()
 
         cursor_local.close()
+        conn.close()
         return redirect("/profil_acheteur")
 
     cursor_local.close()
+    conn.close()
     return render_template("modifier_profil.html", user=user_db)
 
 
@@ -488,3 +554,4 @@ def notifications():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
