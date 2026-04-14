@@ -29,7 +29,7 @@
 
     {% for p in produits %}
     <div class="product-card"
-         onclick="window.location.href='{{ url_for('produit_details', product_id=p.id) }}'">
+         onclick="window.location.href='{{ url_for('vendeur_details', product_id=p.id) }}'">
 
       <!-- Image du produit -->
       <img src="{{ p.image_url }}" alt="{{ p.name }}" class="product-image">

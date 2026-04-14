@@ -1,4 +1,4 @@
-# Variables d'environnement (SÉCURITÉ)
+# variable de la base de donnée
 .env
 
 # Environnement virtuel

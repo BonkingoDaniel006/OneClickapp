@@ -1,15 +1,35 @@
 import os
 import random
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session
+from flask import Flask, jsonify, render_template, request, redirect, url_for, make_response
 from werkzeug.utils import secure_filename
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
+from flask_jwt_extended import (
+    JWTManager, create_access_token, jwt_required, 
+    get_jwt_identity, set_access_cookies, unset_jwt_cookies, get_jwt
+) #import des element pour jwt
+from datetime import timedelta
+
+
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("KEY")
+app.secret_key = os.getenv("jwt_key")
+app.config["JWT_SECRET_KEY"] = os.getenv("jwt_key")
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"] #le jeton voyage dans un cookie
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2) # Badge valable 2h
+app.config["JWT_COOKIE_CSRF_PROTECT"] = False # À mettre sur True en prod pour le blindage total
+
+jwt = JWTManager(app)
+
+
+# Redirection automatique si non connecté
+@jwt.unauthorized_loader
+def customized_response(callback):
+    return redirect(url_for('connexion'))
+
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -23,19 +43,18 @@ def get_db_connection():
 def home():
     return render_template("connexion.html")
 
-
 @app.route("/connexion", methods=["GET"])
 def connexion():
     return render_template("connexion.html")
 
-
 @app.route("/logout")
 def logout():
-    session.pop("user", None)
-    return redirect(url_for("home"))
-
+    response = make_response(redirect(url_for("home")))
+    unset_jwt_cookies(response)
+    return response
 
 @app.route("/users")
+@jwt_required()
 def get_users():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -45,16 +64,13 @@ def get_users():
     conn.close()
     return jsonify(users)
 
-
 @app.route("/create_account")
 def create_account():
     return render_template("creation_compte_acheteur.html")
 
-
 @app.route("/create_seller")
 def create_seller():
     return render_template("creation_compte.html")
-
 
 @app.route("/account_setup", methods=["POST"])
 def account_setup():
@@ -89,7 +105,6 @@ def account_setup():
         conn.close()
     return redirect(url_for("home"))
 
-
 @app.route("/seller_setup", methods=["POST"])
 def seller_setup():
     nom_proprio = request.form.get("nom_proprio")
@@ -114,111 +129,87 @@ def seller_setup():
     conn.close()
     return redirect(url_for("home"))
 
-
-# ---------- FIL D'ACTU + CONNEXION ----------
-
 @app.route("/fil_actu", methods=["GET", "POST"])
 def fil_actu():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    # GET : afficher le fil si connecté
-    if request.method == "GET":
-        if "user" in session:
-            user = session["user"]
+    if request.method == "POST":
+        email = request.form.get("email")
+        motdepasse = request.form.get("motdepasse")
 
-            cursor.execute("""
-                SELECT p.*, b.nom_boutique
-                FROM products p
-                JOIN buyers b ON p.seller_id = b.id
-            """)
-            produits = cursor.fetchall()
-            random.shuffle(produits)
-
-            cursor.close()
-            conn.close()
-            return render_template(
-                "fil_actu.html",
-                name=user["first_name"],
-                produits=produits,
-                user=user
-            )
-        else:
-            cursor.close()
-            conn.close()
-            return redirect(url_for("home"))
-
-    # POST : tentative de connexion
-    email = request.form.get("email")
-    motdepasse = request.form.get("motdepasse")
-    conn= get_db_connection()
-    cursor=conn.cursor(dictionary=True)
-
-    cursor.execute("SELECT * FROM buyers WHERE email = %s", (email,))
-    user = cursor.fetchone()
-    if user:
-
-        if check_password_hash(user['password'], motdepasse):
-            session["user"] = user
-
-            cursor.execute("""
-                SELECT p.*, b.nom_boutique
-                FROM products p
-                JOIN buyers b ON p.seller_id = b.id
-            """)
-            produits = cursor.fetchall()
-            random.shuffle(produits)
-
-            cursor.close()
-            conn.close()
-            return render_template(
-                "fil_actu.html",
-                 name=user["first_name"],
-                produits=produits,
-                user=user
-            )
-
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM buyers WHERE email = %s", (email,))
+        user = cursor.fetchone()
         cursor.close()
         conn.close()
-        return render_template(
-            "connexion.html",
-            error="Identifiants incorrects. Veuillez réessayer."
-        )
 
+        if user and check_password_hash(user['password'], motdepasse):
+            access_token = create_access_token(
+                identity=str(user['id']),
+                additional_claims={
+                    "first_name": user['first_name'],
+                    "last_name": user['last_name'],
+                    "email": user.get('email'), # Optionnel pour l'affichage
+                    "profil": user.get('profil') , # Chemin image
+                    "is_vendor": bool(user.get('nom_boutique'))
+                }
+            )
+            response = make_response(redirect(url_for("fil_actu")))
+            set_access_cookies(response, access_token)
+            return response
+        
+        return render_template("connexion.html", error="Email ou mot de passe incorrect.")
+
+    return display_fil_actu()
+
+@jwt_required()
+def display_fil_actu():
+    claims = get_jwt()
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT p.*, b.nom_boutique 
+        FROM products p 
+        JOIN buyers b ON p.seller_id = b.id
+    """)
+    produits = cursor.fetchall()
+    random.shuffle(produits)
+    cursor.close()
+    conn.close()
+    
+    return render_template(
+        "fil_actu.html",
+        name=claims.get("first_name"),
+        produits=produits,
+        user=claims
+    )
 
 @app.route("/acceuil")
+@jwt_required()
 def acceuil():
     return redirect(url_for("fil_actu"))
 
+@app.route("/produit/<int:product_id>")
+@jwt_required(optional=True)
+def vendeur_details(product_id):
+    user_id = get_jwt_identity()
+    user = get_jwt() if user_id else None
 
-# ---------- PRODUITS / DETAILS / PANIER ----------
-
-def get_product_with_seller(cursor, product_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute("""
         SELECT p.*, b.nom_boutique AS seller_name
         FROM products p
         JOIN buyers b ON p.seller_id = b.id
         WHERE p.id = %s
     """, (product_id,))
-    return cursor.fetchone()
-
-
-@app.route("/produit/<int:product_id>")
-def produit_details(product_id):
-    user = session.get("user")
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    produit = get_product_with_seller(cursor, product_id)
-    if not produit:
-        cursor.close()
-        conn.close()
-        return "Produit introuvable", 404
-
+    produit = cursor.fetchone()
     added = request.args.get("added")
-
     cursor.close()
     conn.close()
+
+    if not produit:
+        return "Produit introuvable", 404
+
     return render_template(
         "detail_produit.html",
         produit=produit,
@@ -226,332 +217,143 @@ def produit_details(product_id):
         user=user
     )
 
-
 @app.route("/add_product/<int:product_id>", methods=["POST"])
+@jwt_required()
 def add_product(product_id):
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
+    buyer_id = get_jwt_identity()
+    claims = get_jwt()
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT p.*, b.nom_boutique AS seller_name
+        FROM products p
+        JOIN buyers b ON p.seller_id = b.id
+        WHERE p.id = %s
+    """, (product_id,))
+    produit = cursor.fetchone()
 
-    produit = get_product_with_seller(cursor, product_id)
     if not produit:
         cursor.close()
         conn.close()
         return "Produit introuvable", 404
 
-    # Infos acheteur
-    buyer_id = user["id"]
-    buyer_first_name = user["first_name"]
-    buyer_last_name = user["last_name"]
-
-    # Quantité
-    quantite_raw = request.form.get("quantite", "1")
-    try:
-        quantite = int(quantite_raw)
-        if quantite < 1:
-            quantite = 1
-    except ValueError:
-        quantite = 1
-
-    # Prix total
+    quantite = int(request.form.get("quantite", 1))
     prix_total = quantite * float(produit["price"])
 
-    # Insertion dans panier2
     cursor.execute("""
         INSERT INTO panier2 (
             buyer_id, buyer_first_name, buyer_last_name,
             product_id, product_name, product_price, product_description, product_image_url,
-            seller_id, seller_name,
-            quantite, prix_total
+            seller_id, seller_name, quantite, prix_total
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
-        buyer_id, buyer_first_name, buyer_last_name,
+        buyer_id, claims.get("first_name"), claims.get("last_name"),
         produit["id"], produit["name"], produit["price"], produit["description"], produit["image_url"],
-        produit["seller_id"], produit["seller_name"],
-        quantite, prix_total
+        produit["seller_id"], produit["seller_name"], quantite, prix_total
     ))
 
     conn.commit()
     cursor.close()
     conn.close()
-
     return redirect(url_for("produit_details", product_id=product_id, added=1))
 
-
-# ---------- PROFIL / PAIEMENT / AVIS ----------
-
 @app.route("/profil_acheteur")
+@jwt_required()
 def profil_acheteur():
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
-
+    user_id = get_jwt_identity()
+    claims = get_jwt()
+    
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute(
-        "SELECT * FROM panier2 WHERE buyer_id = %s ORDER BY created_at DESC",
-        (user["id"],)
-    )
+    cursor.execute("SELECT * FROM panier2 WHERE buyer_id = %s ORDER BY created_at DESC", (user_id,))
     cart_items = cursor.fetchall()
-
-    total = 0.0
-    for item in cart_items:
-        total += float(item.get("prix_total") or 0)
-
+    total = sum(float(item.get("prix_total") or 0) for item in cart_items)
     cursor.close()
     conn.close()
-    return render_template(
-        "profil_acheteur.html",
-        user=user,
-        cart_items=cart_items,
-        cart_total=total
-    )
-
+    
+    return render_template("profil_acheteur.html", user=claims, cart_items=cart_items, cart_total=total)
 
 @app.route("/paiement")
+@jwt_required()
 def paiement():
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
-
+    user_id = get_jwt_identity()
+    claims = get_jwt()
+    
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute(
-        "SELECT * FROM panier2 WHERE buyer_id = %s ORDER BY created_at DESC",
-        (user["id"],)
-    )
+    cursor.execute("SELECT * FROM panier2 WHERE buyer_id = %s ORDER BY created_at DESC", (user_id,))
     cart_items = cursor.fetchall()
-
-    total = 0.0
-    for item in cart_items:
-        total += float(item.get("prix_total") or 0)
-
+    total = sum(float(item.get("prix_total") or 0) for item in cart_items)
     cursor.close()
     conn.close()
-    return render_template(
-        "paiement.html",
-        user=user,
-        cart_items=cart_items,
-        cart_total=total
-    )
-
+    
+    return render_template("paiement.html", user=claims, cart_items=cart_items, cart_total=total)
 
 @app.route("/checkout", methods=["POST"])
+@jwt_required()
 def checkout():
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
-
-    # Ici, la logique de paiement peut être ajoutée (ex: API de paiement)
-    # Pour l'instant, on vide simplement le panier de l'utilisateur et on confirme.
+    user_id = get_jwt_identity()
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM panier2 WHERE buyer_id = %s", (user["id"],))
+    cursor.execute("DELETE FROM panier2 WHERE buyer_id = %s", (user_id,))
     conn.commit()
     cursor.close()
     conn.close()
 
-    message = "Paiement effectué avec succès ! Votre commande est enregistrée."
-    return render_template(
-        "paiement.html",
-        user=user,
-        cart_items=[],
-        cart_total=0,
-        message=message
-    )
-
-
-@app.route("/avis_commande")
-def avis_commande():
-    return render_template("avis_commande.html")
-
-
-# ---------- PROFIL VENDEUR / PRODUITS VENDEUR ----------
+    return render_template("paiement.html", user=get_jwt(), cart_items=[], cart_total=0, message="Paiement effectué avec succès !")
 
 @app.route("/profil_vendeur")
+@jwt_required()
 def profil_vendeur():
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
-
+    user_id = get_jwt_identity()
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM products WHERE seller_id = %s", (user["id"],))
-    produits_vendeur = cursor.fetchall()
+    cursor.execute("SELECT * FROM products WHERE seller_id = %s", (user_id,))
+    produits = cursor.fetchall()
     cursor.close()
     conn.close()
 
-    return render_template("profil_vendeur.html", user=user, produits=produits_vendeur)
-
+    return render_template("profil_vendeur.html", user=get_jwt(), produits=produits)
 
 @app.route("/ajouter_produit")
+@jwt_required()
 def ajouter_produit():
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
-
-    return render_template("ajouter_produit.html", user=user)
-
+    return render_template("ajouter_produit.html", user=get_jwt())
 
 @app.route("/enregistrer_produit", methods=["POST"])
+@jwt_required()
 def enregistrer_produit():
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
-
+    user_id = get_jwt_identity()
     nom_produit = request.form.get("nom_produit")
     prix = request.form.get("prix")
     description = request.form.get("description")
-
     image_file = request.files.get("image_url")
 
+    image_url = None
     if image_file and image_file.filename != "":
         filename = secure_filename(image_file.filename)
         image_path = os.path.join("static/uploads", filename)
-        os.makedirs(os.path.dirname(image_path), exist_ok=True)
         image_file.save(image_path)
         image_url = "/" + image_path.replace("\\", "/")
-    else:
-        image_url = None
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO products (seller_id, name, price, description, image_url)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (user["id"], nom_produit, prix, description, image_url))
-
+    cursor.execute("INSERT INTO products (seller_id, name, price, description, image_url) VALUES (%s, %s, %s, %s, %s)", 
+                   (user_id, nom_produit, prix, description, image_url))
     conn.commit()
     cursor.close()
     conn.close()
     return redirect(url_for("profil_vendeur"))
 
-
-@app.route("/vendeur_details/<int:product_id>")
-def vendeur_details(product_id):
-    user = session.get("user")
-
-    conn = get_db_connection()
-    cursor2 = conn.cursor()
-    cursor2.execute("""
-        SELECT p.id, p.name, p.description, p.price, p.image_url, b.nom_boutique
-        FROM products p
-        JOIN buyers b ON p.seller_id = b.id
-        WHERE p.id = %s
-    """, (product_id,))
-
-    produit = cursor2.fetchone()
-    
-    if produit:
-        produit_dict = {
-            "id": produit[0],
-            "name": produit[1],
-            "description": produit[2],
-            "price": produit[3],
-            "image_url": produit[4],
-            "nom_boutique": produit[5]
-        }
-        cursor2.close()
-        conn.close()
-        return render_template("vendeur_details.html", produit=produit_dict, user=user)
-
-    cursor2.close()
-    conn.close()
-    return "Produit introuvable", 404
-
-
-# ---------- MODIFICATION PROFIL ----------
-
-@app.route("/modifier_profil_acheteur")
-def modifier_profil_acheteur():
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
-
-    return render_template("modifier_profil.html", user=user)
-
-
-@app.route("/modifier_profil", methods=["GET", "POST"])
-def modifier_profil():
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
-
-    user_id = user["id"]
-
-    conn = get_db_connection()
-    cursor_local = conn.cursor(dictionary=True)
-    cursor_local.execute("SELECT * FROM buyers WHERE id=%s", (user_id,))
-    user_db = cursor_local.fetchone()
-
-    if request.method == "POST":
-        email = request.form["email"]
-        first_name = request.form["first_name"]
-        last_name = request.form["last_name"]
-        middle_name = request.form.get("middle_name")
-        adresse = request.form["adresse"]
-        naissance = request.form["naissance"]
-        nom_boutique = request.form.get("nom_boutique")
-        description = request.form.get("description")
-        motdepasse = request.form.get("motdepasse")
-        confirmer = request.form.get("confirmer")
-        
-
-        file = request.files.get("profil")
-        profil_path = user_db.get("profil")
-
-        if file and file.filename != "":
-            filename = secure_filename(file.filename)
-            profil_path = os.path.join("static/profils", filename)
-            os.makedirs(os.path.dirname(profil_path), exist_ok=True)
-            file.save(profil_path)
-
-        if motdepasse and motdepasse == confirmer:
-            hash_password = generate_password_hash(motdepasse)
-            cursor_local.execute("""
-                UPDATE buyers SET email=%s, first_name=%s, last_name=%s,
-                middle_name=%s, adresse=%s, naissance=%s, password=%s,
-                profil=%s, nom_boutique=%s, description=%s WHERE id=%s
-            """, (email, first_name, last_name, middle_name, adresse, naissance,
-                  hash_password, profil_path, nom_boutique, description, user_id))
-        else:
-            cursor_local.execute("""
-                UPDATE buyers SET email=%s, first_name=%s, last_name=%s,
-                middle_name=%s, adresse=%s, naissance=%s, profil=%s,
-                nom_boutique=%s, description=%s WHERE id=%s
-            """, (email, first_name, last_name, middle_name, adresse, naissance,
-                  profil_path, nom_boutique, description, user_id))
-
-        conn.commit()
-
-        # Mettre à jour la session
-        cursor_local.execute("SELECT * FROM buyers WHERE id=%s", (user_id,))
-        session["user"] = cursor_local.fetchone()
-
-        cursor_local.close()
-        conn.close()
-        return redirect("/profil_acheteur")
-
-    cursor_local.close()
-    conn.close()
-    return render_template("modifier_profil.html", user=user_db)
-
-
-# ---------- NOTIFICATIONS ----------
-
 @app.route("/notifications")
+@jwt_required()
 def notifications():
-    user = session.get("user")
-    if not user:
-        return redirect(url_for("home"))
-
-    return render_template("notif_vendeur.html", user=user)
+    return render_template("notif_vendeur.html", user=get_jwt())
 
 
 if __name__ == "__main__":
     app.run(debug=True)
     
+
