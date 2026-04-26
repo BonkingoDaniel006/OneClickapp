@@ -16,11 +16,23 @@ from datetime import timedelta
 load_dotenv()
 
 app = Flask(__name__)
+
+# CLES DE SECURITE 
 app.secret_key = os.getenv("jwt_key")
 app.config["JWT_SECRET_KEY"] = os.getenv("jwt_key")
-app.config["JWT_TOKEN_LOCATION"] = ["cookies"] #le jeton voyage dans un cookie
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2) # Badge valable 2h
-app.config["JWT_COOKIE_CSRF_PROTECT"] = False # À mettre sur True en prod pour le blindage total
+
+# PARAMETRES DES COOKIES 
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15)
+
+# --- BLINDAGE CSRF ---
+app.config["JWT_COOKIE_CSRF_PROTECT"] = True  # ACTIVÉ
+app.config['JWT_ACCESS_CSRF_HEADER_NAME'] = "X-CSRF-TOKEN"
+
+# --- LE PIEGE A EVITER ---
+# Si tu es sur ton PC (http://127.0.0.1), SECURE doit être False.
+# En ligne (HTTPS), il DOIT être True.
+app.config['JWT_COOKIE_SECURE'] = False # Mets True uniquement quand tu passes en HTTPS
 
 jwt = JWTManager(app)
 
@@ -53,16 +65,35 @@ def logout():
     unset_jwt_cookies(response)
     return response
 
+from flask import jsonify, abort
+from flask_jwt_extended import jwt_required, get_jwt
+
 @app.route("/users")
 @jwt_required()
 def get_users():
+    # 1. Vérification du rôle (Optionnel mais recommandé)
+    claims = get_jwt()
+    if claims.get("is_admin") is not True:
+        return jsonify({"msg": "Accès refusé : autorisé seulement aux admin"}), 403
+
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM buyers")
-    users = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return jsonify(users)
+    try:
+        cursor = conn.cursor(dictionary=True)
+        
+        # 2. Sélection explicite des colonnes (Pas de password !)
+        query = "SELECT id, first_name, last_name, email FROM buyers"
+        cursor.execute(query)
+        
+        users = cursor.fetchall()
+        return jsonify(users)
+    
+    except Exception as e:
+        return jsonify({"error": "Erreur lors de la récupération"}), 500
+    
+    finally:
+        # Toujours fermer la connexion, même en cas d'erreur
+        cursor.close()
+        conn.close()
 
 @app.route("/create_account")
 def create_account():
@@ -257,7 +288,7 @@ def add_product(product_id):
     conn.commit()
     cursor.close()
     conn.close()
-    return redirect(url_for("produit_details", product_id=product_id, added=1))
+    return redirect(url_for("vendeur_details", product_id=product_id, added=1))
 
 @app.route("/profil_acheteur")
 @jwt_required()
@@ -353,7 +384,19 @@ def notifications():
     return render_template("notif_vendeur.html", user=get_jwt())
 
 
+@app.route("/modifier_profil")
+@jwt_required()
+def modifier_profil():
+    # On récupère les données du token (claims) pour identifier l'utilisateur
+    claims = get_jwt()
+    
+    # On renvoie le template en lui passant la variable 'user'
+    return render_template("modifier_profil.html", user=claims)
+
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    result = os.getenv("FLASK_ENV")
+    app.run(debug= result)
     
 
