@@ -25,14 +25,13 @@ app.config["JWT_SECRET_KEY"] = os.getenv("jwt_key")
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15)
 
-# --- BLINDAGE CSRF ---
+#BLINDAGE CSRF 
 app.config["JWT_COOKIE_CSRF_PROTECT"] = True  # ACTIVÉ
 app.config['JWT_ACCESS_CSRF_HEADER_NAME'] = "X-CSRF-TOKEN"
+app.config["JWT_CSRF_CHECK_FORM"] = True
 
-# --- LE PIEGE A EVITER ---
-# Si tu es sur ton PC (http://127.0.0.1), SECURE doit être False.
-# En ligne (HTTPS), il DOIT être True.
-app.config['JWT_COOKIE_SECURE'] = False # Mets True uniquement quand tu passes en HTTPS
+
+app.config['JWT_COOKIE_SECURE'] = False # mettre true uniquement avec https
 
 jwt = JWTManager(app)
 
@@ -333,7 +332,7 @@ def checkout():
     cursor.close()
     conn.close()
 
-    return render_template("paiement.html", user=get_jwt(), cart_items=[], cart_total=0, message="Paiement effectué avec succès !")
+    return render_template("paiement confirmé.html")
 
 @app.route("/profil_vendeur")
 @jwt_required()
@@ -399,4 +398,3 @@ if __name__ == "__main__":
     result = os.getenv("FLASK_ENV")
     app.run(debug= result)
     
-
